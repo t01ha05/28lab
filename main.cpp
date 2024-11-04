@@ -1,31 +1,51 @@
 #include <iostream>
 #include <fstream>
-#include <iomanip>
+#include <algorithm>
 #include <list>
+#include <random>
+#include <string>
 #include "Goat.h"
 using namespace std;
 
-const int SZ_NAMES = 200, SZ_COLORS = 25;
+const int SZ_NAMES = 200;
+const int SZ_COLORS = 25;
 
-int select_goat(list<Goat> trip);
+int select_goat(const list<Goat> &trip);
 void delete_goat(list<Goat> &trip);
-void add_goat(list<Goat> &trip, string [], string []);
-void display_trip(list<Goat> trip);
+void add_goat(list<Goat> &trip, string names[], string colors[]);
+void display_trip(const list<Goat> &trip);
 int main_menu();
+void find_goat_by_name(const list<Goat>& goats);
+void sort_goats_by_age(list<Goat>& goats);
 
 int main() {
     srand(time(0));
     bool again;
 
     // read & populate arrays for names and colors
-    ifstream fin("names.txt");
     string names[SZ_NAMES];
-    int i = 0;
-    while (fin >> names[i++]);
-    fin.close();
-    ifstream fin1("colors.txt");
     string colors[SZ_COLORS];
-    i = 0;
+    
+    // Proper file handling for names
+    ifstream fin("names.txt");
+    if (!fin) {
+        cerr << "Error: Cannot open names.txt\n";
+        return 1;
+    }
+    
+    int nameCount = 0;
+    while (nameCount < SZ_NAMES && fin >> names[nameCount]) {
+        nameCount++;
+    }
+    fin.close();
+    
+    if (nameCount == 0) {
+        cerr << "Error: No names loaded\n";
+        return 1;
+    }
+
+    ifstream fin1("colors.txt");
+    int i = 0;
     while (fin1 >> colors[i++]);
     fin1.close();
 
@@ -38,8 +58,7 @@ int main() {
         age = rand() % MAX_AGE;  // defined in Goat.h
         name = names[rand() % SZ_NAMES];
         color = colors[rand() % SZ_COLORS];
-        Goat tmp(name, age, color);
-        trip.push_back(tmp);
+        trip.push_back(Goat(name, age, color));
     }
     
     // Goat Manager 3001 Engine
@@ -58,6 +77,12 @@ int main() {
                 cout << "Displaying goat data.\n";
                 display_trip(trip);
                 break;
+            case 5:
+                find_goat_by_name(trip);
+                break;
+            case 6:
+                sort_goats_by_age(trip);
+                break;
             default:
                 cout << "Invalid selection.\n";
                 break;
@@ -70,15 +95,17 @@ int main() {
 }
 
 int main_menu() {
+    const int MAX_CHOICE = 12;
     cout << "*** GOAT MANAGER 3001 ***\n";
     cout << "[1] Add a goat\n";
     cout << "[2] Delete a goat\n";
     cout << "[3] List goats\n";
-    cout << "[4] Quit\n";
-    cout << "Choice --> ";
+    cout << "[" << MAX_CHOICE << "] Quit\n";
+    
     int choice;
+    cout << "Choice --> ";
     cin >> choice;
-    while (choice < 1 || choice > 4) {
+    while (choice < 1 || choice > MAX_CHOICE) {
         cout << "Invalid, again --> ";
         cin >> choice;
     }
@@ -99,12 +126,11 @@ void add_goat(list<Goat> &trip, string nms[], string cls[]) {
     int age = rand() % MAX_AGE;
     string nm = nms[rand() % SZ_NAMES];
     string cl = cls[rand() % SZ_COLORS];
-    Goat tmp(nm, age, cl);
-    trip.push_back(tmp);
+    trip.push_back(Goat(nm, age, cl));
     cout << "Goat added. New trip size: " << trip.size() << endl;
 }
 
-void display_trip(list<Goat> trp) {
+void display_trip(const list<Goat> &trp) {
     int i = 1;
     for (auto gt: trp)
         cout << "\t" 
@@ -114,7 +140,7 @@ void display_trip(list<Goat> trp) {
              << ", " << gt.get_color() << ")\n";
 }
 
-int select_goat(list<Goat> trp) {
+int select_goat(const list<Goat> &trp) {
     int input;
     cout << "Make a selection:\n";
     display_trip(trp);
@@ -125,4 +151,27 @@ int select_goat(list<Goat> trp) {
         cin >> input;
     }
     return input;
+}
+
+void find_goat_by_name(const list<Goat>& goats) {
+    string name;
+    cout << "Enter name to find: ";
+    cin >> name;
+    
+    auto it = find_if(goats.begin(), goats.end(), 
+        [&name](const Goat& g) { return g.get_name() == name; });
+        
+    if (it != goats.end()) {
+        cout << "Found: " << it->get_name() << " " 
+             << it->get_age() << " " << it->get_color() << endl;
+    } else {
+        cout << "Goat not found.\n";
+    }
+}
+
+void sort_goats_by_age(list<Goat>& goats) {
+    goats.sort([](const Goat& a, const Goat& b) {
+        return a.get_age() < b.get_age();
+    });
+    cout << "Goats sorted by age.\n";
 }
