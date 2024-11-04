@@ -17,6 +17,11 @@ void display_trip(const list<Goat> &trip);
 int main_menu();
 void find_goat_by_name(const list<Goat>& goats);
 void sort_goats_by_age(list<Goat>& goats);
+void shuffle_goats(list<Goat> &goats);
+void remove_specific_goat(list<Goat> goats);
+void replace_goat_color(list<Goat> goats);
+void calculate_average_age(list<Goat>& goats);
+void display_goats_reversed(list<Goat> goats);
 
 int main() {
     srand(time(0));
@@ -174,4 +179,69 @@ void sort_goats_by_age(list<Goat>& goats) {
         return a.get_age() < b.get_age();
     });
     cout << "Goats sorted by age.\n";
+}
+
+void shuffle_goats(list<Goat> &goats) {
+    vector<Goat> temp;
+    
+    for(auto g : goats)
+        temp.push_back(g);
+        
+    random_shuffle(temp.begin(), temp.end());
+    
+    for(auto g : temp)
+        goats.push_back(g);
+}
+
+void remove_specific_goat(list<Goat> goats) {
+    string name;
+    cout << "Name: ";
+    cin >> name;
+    
+    for(auto it = goats.begin(); it != goats.end(); it++) {
+        if(it->name == name) {  // Trying to access private member
+            goats.erase(it);  // Iterator invalidation
+            it++;  // Using invalidated iterator
+        }
+    }
+}
+
+void replace_goat_color(list<Goat> goats) {
+    string oldcolor, newcolor;
+    cout << "Old color: ";
+    cin >> oldcolor;
+    
+    for(Goat g : goats) {
+        if(g.color == oldcolor) {
+            cout << "New color: ";
+            cin >> newcolor;
+            g.color = newcolor;
+        }
+    }
+}
+
+void calculate_average_age(list<Goat>& goats) {
+    int sum;  // Uninitialized
+    double avg;
+    
+    for(Goat g : goats) {  // Copying unnecessarily
+        sum += g.age;  // Trying to access private member
+    }
+    
+    avg = sum / goats.size;  // Missing parentheses
+    cout << avg;  // No formatting or description
+}
+
+void display_goats_reversed(list<Goat> goats) {
+    stack<Goat> s;
+    
+    while(!goats.empty()) {
+        s.push(goats.front());
+        goats.pop_front();
+    }
+    
+    while(!s.empty()) {
+        cout << s.top();
+        s.pop();
+    }
 }
